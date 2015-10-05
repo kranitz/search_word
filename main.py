@@ -1,15 +1,25 @@
+from argparse import ArgumentParser
+import os
+import shutil
+
 __author__ = 'gabor'
 
 
 class Saver:
+    def __init__(self, path: str):
+        self.path = path
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        os.mkdir(path)
+
     def save_them(self, found_items: list):
         for item in found_items:
-            with open("separated/" + item.get_word() + ".txt", 'a') as file:
+            with open(self.path + "/" + item.get_word() + ".txt", 'a') as file:
                 file.write(item.get_line())
                 file.close()
 
 
-class FoundIt:
+class WantedRecord:
     def __init__(self, word: str, line: str):
         self._word = word
         self._line = line
@@ -41,7 +51,7 @@ class Seeker:
             fw = self.get_first_word(log_line)
             for word in dy:
                 if fw == word.strip():
-                    self._result.append(FoundIt(word, log_line))
+                    self._result.append(WantedRecord(word, log_line))
 
     def get_first_word(self, line:str):
         word = ""
@@ -53,20 +63,23 @@ class Seeker:
 
 
 class Controller:
-    def __init__(self):
-        self._seeker = Seeker("dictionary.txt", "log.txt")
-        self._saver = Saver()
+    def __init__(self, dictionary: str, log: str, save_here: str):
+        self._seeker = Seeker(dictionary, log)
+        self._saver = Saver(save_here)
 
     def run(self):
         self._seeker.find_them()
-        if self._seeker.get_result():
-            self._saver.save_them(self._seeker.get_result())
+        self._saver.save_them(self._seeker.get_result())
 
 
-def main():
-    c = Controller()
+def main(dictionary: str, log: str, save_here: str):
+    c = Controller(dictionary, log, save_here)
     c.run()
 
 if __name__ == "__main__":
-    main()
-
+    parser = ArgumentParser()
+    parser.add_argument('-d', dest='dictionary', help='Path of dictionary', required=True)
+    parser.add_argument('-l', dest='log', help='Path of log file', required=True)
+    parser.add_argument('-s', dest='save_here', help='Path where to save', required=False, default="separated")
+    args = parser.parse_args()
+    main(args.dictionary, args.log, args.save_here)
