@@ -2,8 +2,6 @@ from argparse import ArgumentParser
 import os
 import shutil
 
-__author__ = 'gabor'
-
 
 class Saver:
     def __init__(self, path: str):
@@ -14,7 +12,7 @@ class Saver:
 
     def save_them(self, found_items: list):
         for item in found_items:
-            with open(self.path + "/" + item.get_word() + ".txt", 'a') as file:
+            with open("{path}/{word}.txt".format(path=self.path, word=item.get_word()), 'a') as file:
                 file.write(item.get_line())
                 file.close()
 
@@ -25,7 +23,7 @@ class WantedRecord:
         self._line = line
 
     def get_word(self):
-        return self._word
+        return self._word.strip()
 
     def get_line(self):
         return self._line
