@@ -23,14 +23,14 @@ class WantedRecord:
         self._line = line
 
     def get_word(self):
-        return self._word.strip()
+        return self._word
 
     def get_line(self):
         return self._line
 
 
 class Seeker:
-    def __init__(self, dictionary: str, log: str):
+    def __init__(self, dictionary, log):
         self._result = []
         self._dictionary = dictionary
         self._log = log
@@ -38,9 +38,14 @@ class Seeker:
     def get_result(self):
         return self._result
 
-    def read_file(self, path: str):
-        with open(path, 'r+') as file:
-            return file.readlines() # ?
+    def read_file(self, file):
+        # with open(path, 'r+') as file:
+            # return file.readlines() # ?
+            while True:
+                data = file.readline()
+                if not data:
+                    break
+                yield data
 
     def find_them(self):
         dy = self.read_file(self._dictionary)

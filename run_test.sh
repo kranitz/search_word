@@ -1,0 +1,1 @@
+nosetests3 -v test/*
