@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+import json
 import os
 import shutil
 
@@ -36,6 +37,18 @@ class Seeker:
         self.log = self.read_file(log)
         self.dictfile = open(dictionary)
         self.logfile = open(log)
+        self.tree = {}
+        for word in self.read_with_yield(self.dictfile):
+            self.build_tree(self.tree, word.strip())
+        print(json.dumps(self.tree, indent=True))
+
+    def build_tree(self, tree, word):
+        if not word:
+            tree['complete_word'] = True
+            return
+        if word[0] not in tree:
+            tree[word[0]] = {'complete_word': False}
+        self.build_tree(tree[word[0]], word[1:])
 
     def read_with_yield(self, file):
         while True:
@@ -44,6 +57,23 @@ class Seeker:
                 break
             yield data
 
+    def read_tree(self, tree, word):
+        if word[0] in tree:
+            self.read_tree(tree[word[0]], word[1:])
+            if tree['complete_word']:
+                print(word)
+
+
+    def find_with_tree(self):
+        for log_line in self.read_with_yield(self.logfile):
+            fw = self.get_first_word(log_line)
+            self.read_tree(self.tree, fw)
+            # for letter in fw:
+            #     print(self.tree[letter])
+                # if fw == word.strip():
+                #     self._result.append(WantedRecord(word.strip(), log_line))
+
+
     def find_them_with_yield(self):
         for word in self.read_with_yield(self.dictfile):
             print(word, "---------------")
@@ -51,13 +81,13 @@ class Seeker:
     def get_result(self):
         return self._result
 
-
     def read_file(self, path: str):
         with open(path, 'r+') as file:
             return file.readlines() # ?
 
     def find_them(self):
-        for log_line in log:
+        # self.find_them_with_yield()
+        for log_line in self.log:
             fw = self.get_first_word(log_line)
             for word in self.dy:
                 if fw == word.strip():
@@ -78,7 +108,8 @@ class Controller:
         self._saver = Saver(save_here)
 
     def run(self):
-        self._seeker.find_them()
+        self._seeker.find_with_tree()
+        # self._seeker.find_them()
         self._saver.save_them(self._seeker.get_result())
 
 
