@@ -40,7 +40,7 @@ class Seeker:
         self.tree = {}
         for word in self.read_with_yield(self.dictfile):
             self.build_tree(self.tree, word.strip())
-        print(json.dumps(self.tree, indent=True))
+            # print(json.dumps(self.tree, indent=True))
 
     def build_tree(self, tree, word):
         if not word:
@@ -63,15 +63,12 @@ class Seeker:
             if tree['complete_word']:
                 print(word)
 
-
-    def find_with_tree(self):
-        for log_line in self.read_with_yield(self.logfile):
-            fw = self.get_first_word(log_line)
-            self.read_tree(self.tree, fw)
-            # for letter in fw:
-            #     print(self.tree[letter])
-                # if fw == word.strip():
-                #     self._result.append(WantedRecord(word.strip(), log_line))
+    def find_word_in_tree(self, word: str, tree: dict):
+        if not word:
+            return tree.get('complete_word', False)
+        if word[0] not in tree:
+            return False
+        return self.find_word_in_tree(word[1:], tree[word[0]])
 
 
     def find_them_with_yield(self):
@@ -84,6 +81,12 @@ class Seeker:
     def read_file(self, path: str):
         with open(path, 'r+') as file:
             return file.readlines() # ?
+
+    def find_them_with_tree(self):
+        for log_line in self.log:
+            fw = self.get_first_word(log_line)
+            if self.find_word_in_tree(fw, self.tree):
+                self._result.append(WantedRecord(fw.strip(), log_line))
 
     def find_them(self):
         # self.find_them_with_yield()
@@ -108,8 +111,8 @@ class Controller:
         self._saver = Saver(save_here)
 
     def run(self):
-        self._seeker.find_with_tree()
-        # self._seeker.find_them()
+        # self._seeker.find_them_with_tree()
+        self._seeker.find_them()
         self._saver.save_them(self._seeker.get_result())
 
 
